@@ -173,15 +173,41 @@ var radial = function(ctx,width,height){
 
 var Canvas = require('canvas');
 var express = require('express');
+var basicAuth = require('basic-auth')
 var cors = require('cors');
 
 var app = express();
 
 app.use(cors());
 
-app.get('/:width', function(req, res) {
+var creds = {
+  appID: '1541c5a2-b78d-48d0-9b41-1be7072d7c1b',
+  jsKey: '6b0ef299-e3ce-479e-bc1d-e1b62df2c5ba'
+};
+
+var auth = function (req, res, next) {
+  function unauthorized(res) {
+    res.set('WWW-Authenticate', 'Basic realm=Authorization Required');
+    return res.send(401);
+  };
+
+  var user = basicAuth(req);
+
+  if (!user || !user.name || !user.pass) {
+    return unauthorized(res);
+  };
+
+  if (user.name === creds.appID && user.pass === creds.jsKey) {
+    return next();
+  } else {
+    return unauthorized(res);
+  };
+};
+
+
+app.get('/:width', auth, function(req, res) {
  
-  var width = parseInt(req.params.width) || 500;
+  var width = Math.min(1000, Math.max(0, parseInt(req.params.width) || 500));
   var height = width;
 
 
@@ -191,8 +217,12 @@ app.get('/:width', function(req, res) {
     , ctx = canvas.getContext('2d');
   
   textIcon(canvas, width, height);		
-  res.send({width: width, base64Images: [canvas.toDataURL()]});
+  res.send({
+    width: width,
+    base64Images: [canvas.toDataURL()]
+  });
 });
+
 
 app.listen(process.env.PORT || 3000);
 
