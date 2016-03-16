@@ -50,7 +50,7 @@ var textIcon = function (canvas, width, height) {
     var rf=davis.random(width/2);
     var color=davis.randomColor();
     davis.maybe(2,3,function(){color=davis.randomColor("grey");});
-    var lw=1+davis.random(width/10);
+    var lw=1+davis.random(width/20);
     var steps=1+davis.random(30);
     var incrementMod=davis.random(3)*90;
     var n=davis.random(6);
@@ -80,9 +80,9 @@ var textIcon = function (canvas, width, height) {
     }
   }
 
-  var radialCanvas = new Canvas(500, 500);
+  var radialCanvas = new Canvas(width, height);
   var ctx2 = radialCanvas.getContext('2d');
-  radial(ctx2, 500, 500);
+  radial(ctx2, width, height);
   var pattern = ctx.createPattern(radialCanvas);
   ctx.clearRect(0, 0, width, height);
 
@@ -179,24 +179,19 @@ var app = express();
 
 app.use(cors());
 
-app.get('/', function(req, res) {
-  res.type('text/plain');
-  res.send('i am a beautiful butterfly');
-});
-
 app.get('/:width', function(req, res) {
-  var Canvas = require('canvas')
-  , Image = Canvas.Image
-  , canvas = new Canvas(500, 500)
-  , ctx = canvas.getContext('2d');
-
-  var width = req.params.width || 500;
+ 
+  var width = parseInt(req.params.width) || 500;
   var height = width;
 
-  // radial(ctx, 500, 500);
-  // ctx.clearRect(0, 0, width, height);
-  textIcon(canvas, 500, 500);		
-  res.send({a: davis.random(500), base64Images: [canvas.toDataURL()]});
+
+  var Canvas = require('canvas')
+    , Image = Canvas.Image
+    , canvas = new Canvas(width, height)
+    , ctx = canvas.getContext('2d');
+  
+  textIcon(canvas, width, height);		
+  res.send({width: width, base64Images: [canvas.toDataURL()]});
 });
 
 app.listen(process.env.PORT || 3000);
